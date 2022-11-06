@@ -32,7 +32,7 @@ if __name__ == "__main__":
     search_keys = list(set(search_list))
 
     #Parameters
-    number_of_images = 70                # Desired number of images
+    number_of_images = 50                # Desired number of images
     headless = False                     # True = No Chrome GUI
     min_resolution = (0, 0)             # Minimum desired image resolution
     max_resolution = (9999, 9999)       # Maximum desired image resolution
