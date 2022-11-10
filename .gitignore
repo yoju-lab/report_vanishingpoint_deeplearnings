@@ -3,3 +3,4 @@ __pycache__/
 photos/
 .ipynb_checkpoints/
 webdriver/
+pre_images/
