@@ -4,3 +4,6 @@ photos/
 .ipynb_checkpoints/
 webdriver/
 pre_images/
+vanishing_points/
+.DS_Store
+error_files/*
