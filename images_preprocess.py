@@ -1,4 +1,4 @@
-import utils
+from use_utils import utils
             
 images_sizes, images_df = utils.get_images_information()            
 # print(images_df)
