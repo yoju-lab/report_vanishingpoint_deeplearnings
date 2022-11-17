@@ -160,30 +160,31 @@ def ransac_vanishing_point(edgelets, num_ransac_iter=2000, threshold_inlier=5):
     first_index_space = arg_sort[:num_pts // 5]
     second_index_space = arg_sort[:num_pts // 2]
 
-    best_model = None
+    best_model = []
     best_votes = np.zeros(num_pts)
 
-    for ransac_iter in range(num_ransac_iter):
-        ind1 = np.random.choice(first_index_space)
-        ind2 = np.random.choice(second_index_space)
+    if len(first_index_space) > 0 or len(second_index_space) > 0:
+        for ransac_iter in range(num_ransac_iter):
+            ind1 = np.random.choice(first_index_space)
+            ind2 = np.random.choice(second_index_space)
 
-        l1 = lines[ind1]
-        l2 = lines[ind2]
+            l1 = lines[ind1]
+            l2 = lines[ind2]
 
-        current_model = np.cross(l1, l2)
+            current_model = np.cross(l1, l2)
 
-        if np.sum(current_model**2) < 1 or current_model[2] == 0:
-            # reject degenerate candidates
-            continue
+            if np.sum(current_model**2) < 1 or current_model[2] == 0:
+                # reject degenerate candidates
+                continue
 
-        current_votes = compute_votes(
-            edgelets, current_model, threshold_inlier)
+            current_votes = compute_votes(
+                edgelets, current_model, threshold_inlier)
 
-        if current_votes.sum() > best_votes.sum():
-            best_model = current_model
-            best_votes = current_votes
-            logging.info("Current best model has {} votes at iteration {}".format(
-                current_votes.sum(), ransac_iter))
+            if current_votes.sum() > best_votes.sum():
+                best_model = current_model
+                best_votes = current_votes
+                logging.info("Current best model has {} votes at iteration {}".format(
+                    current_votes.sum(), ransac_iter))
 
     return best_model
 
@@ -329,9 +330,9 @@ def remove_inliers(model, edgelets, threshold_inlier=10):
     return edgelets
 
 
+import matplotlib.pyplot as plt
 def vis_edgelets(image, edgelets, show=False):
     """Helper function to visualize edgelets."""
-    import matplotlib.pyplot as plt
     plt.figure(figsize=(10, 10))
     plt.imshow(image)
     locations, directions, strengths = edgelets
@@ -345,11 +346,11 @@ def vis_edgelets(image, edgelets, show=False):
 
     if show:
         plt.show()
-
+    
+    # plt.close()
 
 def vis_model(image, suffix, model, show=False, save=True):
     """Helper function to visualize computed model."""
-    import matplotlib.pyplot as plt
     edgelets = compute_edgelets(image)
     locations, directions, strengths = edgelets
     inliers = compute_votes(edgelets, model, 10) > 0
@@ -368,6 +369,7 @@ def vis_model(image, suffix, model, show=False, save=True):
         plt.show()
     if save:
         plt.savefig('./vanishing_points/{}.png'.format(suffix), dpi=200) 
+    plt.close()
 
 
 def rectify_image(image, index, clip_factor=6, algorithm='independent', 
@@ -403,20 +405,23 @@ def rectify_image(image, index, clip_factor=6, algorithm='independent',
     if algorithm == 'independent':
         # Find first vanishing point
         vp1 = ransac_vanishing_point(edgelets1, 2000, threshold_inlier=5)
-        if reestimate:
-            suffix = '{}_vp1'.format(index)
-            vp1 = reestimate_model(vp1, edgelets1, 5)
-            vis_model(image, suffix, vp1) # Visualize the vanishing point model
 
-        # Remove inlier to remove dominating direction.
-        edgelets2 = remove_inliers(vp1, edgelets1, 10)
+        if len(vp1) > 0:
+            if reestimate:
+                suffix = '{}_vp1'.format(index)
+                vp1 = reestimate_model(vp1, edgelets1, 5)
+                vis_model(image, suffix, vp1) # Visualize the vanishing point model
+
+            # Remove inlier to remove dominating direction.
+            edgelets2 = remove_inliers(vp1, edgelets1, 10)
 
         # Find second vanishing point
         vp2 = ransac_vanishing_point(edgelets2, 2000, threshold_inlier=5)
-        if reestimate:
-            suffix = '{}_vp2'.format(index)
-            vp2 = reestimate_model(vp2, edgelets2, 5)
-            vis_model(image, suffix, vp2) # Visualize the vanishing point model
+        if len(vp2) > 0:
+            if reestimate:
+                suffix = '{}_vp2'.format(index)
+                vp2 = reestimate_model(vp2, edgelets2, 5)
+                vis_model(image, suffix, vp2) # Visualize the vanishing point model
 
     elif algorithm == '3-line':
         focal_length = None
@@ -450,14 +455,18 @@ def main():
     files_abspath = read_files_abspath('.', 'pre_images')
     df = pd.DataFrame(columns=['origin_file_name', 'indexs', 'vanishing_point_1', 'vanishing_point_2'])
 
+    skip_count = 0
     for index, file_abspath in enumerate(files_abspath):
         if not file_abspath.endswith('.DS_Store'):
             image_name = file_abspath
             print("Rectifying {}".format(image_name))
             vanishing_point_1, vanishing_point_2 = rectify_image(image_name, index, 4, algorithm='independent', reestimate=True)
+            if len(vanishing_point_1) < 0 or len(vanishing_point_2) < 0 :
+                skip_count =+ 1
             df.loc[len(df.index)] = [image_name, index, vanishing_point_1, vanishing_point_2]
     print(df)
     df.to_csv('./find_vanishing_points.csv')
+    print('index : {}, skip_count : {}'.format(index, skip_count))
 
 if __name__ == '__main__':
     main()
