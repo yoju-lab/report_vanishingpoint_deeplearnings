@@ -7,3 +7,4 @@ pre_images/
 vanishing_points/
 .DS_Store
 error_files/*
+datasets/*
