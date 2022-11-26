@@ -42,11 +42,11 @@ train_ds = tf.keras.preprocessing.image_dataset_from_directory(
     image_size=(img_height, img_width),
     batch_size=BATCH_SIZE)
 
-count = 0
-for images, labels in train_ds.take(1):
-    count += 1
-    print(count, ', ', labels)
-pass
+# count = 0
+# for images, labels in train_ds.take(1):
+#     count += 1
+#     print(count, ', ', labels)
+# pass
 
 
 # 데이터 불러오기
