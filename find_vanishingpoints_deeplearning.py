@@ -29,11 +29,12 @@ train_dir = os.path.join(data_dir, 'training')
 BATCH_SIZE = 6
 img_height = 200
 img_width = 200
-IMG_SHAPE = (img_height, img_width, 3)
+IMG_SHAPE = (img_height, img_width, 1)
 
 train_ds = tf.keras.preprocessing.image_dataset_from_directory(
     data_dir,
     labels=train_labels,
+    color_mode="grayscale",
     label_mode='int',
     validation_split=0.2,
     subset="training",
@@ -58,12 +59,17 @@ model_res = ResNet50(include_top=False, pooling='avg', weights='imagenet')
 # resnet50 가중치 프리징
 model_res.trainable = False
 
-inputs = tf.keras.Input(shape=IMG_SHAPE)
-x = tf.keras.applications.resnet50.preprocess_input(inputs)
+# inputs = tf.keras.Input(shape=IMG_SHAPE)
+# input layers for grayscale
+inputs = tf.keras.Input(shape=(img_height, img_width, 1), name="input")
+x = tf.keras.layers.Concatenate()([inputs, inputs, inputs])
+x = tf.cast(x, tf.float32)
+x = tf.keras.applications.resnet50.preprocess_input(x)
 x = model_res(x, training=False)
+# add regressions layers
 x = Flatten()(x)
 outputs = Dense(2)(x)
-model_res = tf.keras.Model(inputs, outputs)
+model_res = tf.keras.Model(inputs=inputs, outputs=outputs)
 
 # 모델 컴파일
 # optimizer = tf.keras.optimizers.SGD(lr=0.01, decay=1e-6, momentum= 0.9, nesterov = True)
