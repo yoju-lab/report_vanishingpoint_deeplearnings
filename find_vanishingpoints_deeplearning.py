@@ -1,5 +1,5 @@
 
-from tensorflow.keras.applications.resnet50 import ResNet50
+from tensorflow.keras.applications.inception_resnet_v2 import InceptionResNetV2
 from tensorflow.keras import datasets
 from tensorflow.keras.layers import Dense, Flatten, MaxPooling2D
 import tensorflow as tf
@@ -53,22 +53,25 @@ train_ds = tf.keras.preprocessing.image_dataset_from_directory(
 # (train_images, train_labels), (test_images, test_labels) = datasets.cifar10.load_data()
 
 # ResNet50 가져오기
+# from tensorflow.keras.applications.resnet50 import ResNet50
+# model_res = ResNet50(include_top=False, pooling='avg', weights='imagenet')
 
-model_res = ResNet50(include_top=False, pooling='avg', weights='imagenet')
+model_res = InceptionResNetV2(
+    include_top=False, pooling='avg', weights='imagenet')
 
 # resnet50 가중치 프리징
 model_res.trainable = False
 
 # inputs = tf.keras.Input(shape=IMG_SHAPE)
 # input layers for grayscale
-inputs = tf.keras.Input(shape=(img_height, img_width, 1), name="input")
-x = tf.keras.layers.Concatenate()([inputs, inputs, inputs])
+inputs = tf.keras.Input(shape=(img_height, img_width, 1), name="input_01")
+x = tf.keras.layers.Concatenate(name="input_02")([inputs, inputs, inputs])
 x = tf.cast(x, tf.float32)
 x = tf.keras.applications.resnet50.preprocess_input(x)
 x = model_res(x, training=False)
 # add regressions layers
-x = Flatten()(x)
-outputs = Dense(2)(x)
+x = Flatten(name="output_01")(x)
+outputs = Dense(2, name="output_02")(x)
 model_res = tf.keras.Model(inputs=inputs, outputs=outputs)
 
 # 모델 컴파일
