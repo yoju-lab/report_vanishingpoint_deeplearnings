@@ -9,9 +9,14 @@ References
     vanishing point detection." 2012 IEEE/RSJ International Conference on
     Intelligent Robots and Systems. IEEE, 2012.
 """
+import os
+import matplotlib.pyplot as plt
 from skimage import feature, color, transform, io
 import numpy as np
 import logging
+import json
+configs_path = 'commons/configs.json'
+configs = json.load(open(configs_path))
 
 
 def compute_edgelets(image, sigma=3):
@@ -37,9 +42,9 @@ def compute_edgelets(image, sigma=3):
         Length of the line segments detected for the edgelet.
     """
     gray_img = None
-    if image.ndim >=3:
+    if image.ndim >= 3:
         gray_img = color.rgb2gray(image)
-    else :
+    else:
         gray_img = image
     edges = feature.canny(gray_img, sigma)
     lines = transform.probabilistic_hough_line(edges, line_length=3,
@@ -330,7 +335,6 @@ def remove_inliers(model, edgelets, threshold_inlier=10):
     return edgelets
 
 
-import matplotlib.pyplot as plt
 def vis_edgelets(image, edgelets, show=False):
     """Helper function to visualize edgelets."""
     plt.figure(figsize=(10, 10))
@@ -346,8 +350,9 @@ def vis_edgelets(image, edgelets, show=False):
 
     if show:
         plt.show()
-    
+
     # plt.close()
+
 
 def vis_model(image, suffix, model, show=False, save=True):
     """Helper function to visualize computed model."""
@@ -368,11 +373,16 @@ def vis_model(image, suffix, model, show=False, save=True):
     if show:
         plt.show()
     if save:
-        plt.savefig('./vanishing_points/{}.png'.format(suffix), dpi=200) 
+        find_vanishingpoints_dir = os.path.join(
+            configs['datasets_dir'], configs['find_vanishingpoints_dir'])
+
+        find_vanishingpoints_path = os.path.join(
+            find_vanishingpoints_dir, '{}.png')
+        plt.savefig(find_vanishingpoints_path.format(suffix), dpi=200)
     plt.close()
 
 
-def rectify_image(image, index, clip_factor=6, algorithm='independent', 
+def rectify_image(image, index, clip_factor=6, algorithm='independent',
                   reestimate=False):
     """Rectified image with vanishing point computed using ransac.
 
@@ -410,7 +420,8 @@ def rectify_image(image, index, clip_factor=6, algorithm='independent',
             if reestimate:
                 suffix = '{}_vp1'.format(index)
                 vp1 = reestimate_model(vp1, edgelets1, 5)
-                vis_model(image, suffix, vp1) # Visualize the vanishing point model
+                # Visualize the vanishing point model
+                vis_model(image, suffix, vp1)
 
             # Remove inlier to remove dominating direction.
             edgelets2 = remove_inliers(vp1, edgelets1, 10)
@@ -421,7 +432,8 @@ def rectify_image(image, index, clip_factor=6, algorithm='independent',
             if reestimate:
                 suffix = '{}_vp2'.format(index)
                 vp2 = reestimate_model(vp2, edgelets2, 5)
-                vis_model(image, suffix, vp2) # Visualize the vanishing point model
+                # Visualize the vanishing point model
+                vis_model(image, suffix, vp2)
 
     elif algorithm == '3-line':
         focal_length = None
@@ -433,7 +445,7 @@ def rectify_image(image, index, clip_factor=6, algorithm='independent',
 
     return vp1, vp2
 
-import os
+
 def read_files_abspath(dir='results/', subdir='test_files/'):
     current_path = os.path.join(os.getcwd(), dir, subdir)
     read_count = 0
@@ -448,25 +460,42 @@ def read_files_abspath(dir='results/', subdir='test_files/'):
     print('read_count : {}'.format(read_count))
     return files_abspath
 
-import pandas as pd
+
 def main():
     # image_name = sys.argv[-1]
     # files_abspath = read_files_abspath('.', 'error_files')
-    files_abspath = read_files_abspath('.', 'pre_images')
-    df = pd.DataFrame(columns=['origin_file_name', 'indexs', 'vanishing_point_1', 'vanishing_point_2'])
+
+    files_abspath = read_files_abspath(
+        configs['datasets_dir'], configs['preprocess_images_dir'])
+    import pandas as pd
+    df = pd.DataFrame(
+        columns=['origin_file_name', 'indexs', 'vanishing_point_1', 'vanishing_point_2'])
+
+    find_vanishingpoints_dir = os.path.join(
+        configs['datasets_dir'], configs['find_vanishingpoints_dir'])
+    os.makedirs(find_vanishingpoints_dir, exist_ok=True)
 
     skip_count = 0
     for index, file_abspath in enumerate(files_abspath):
         if not file_abspath.endswith('.DS_Store'):
             image_name = file_abspath
             print("Rectifying {}".format(image_name))
-            vanishing_point_1, vanishing_point_2 = rectify_image(image_name, index, 4, algorithm='independent', reestimate=True)
-            if len(vanishing_point_1) < 0 or len(vanishing_point_2) < 0 :
-                skip_count =+ 1
-            df.loc[len(df.index)] = [image_name, index, vanishing_point_1, vanishing_point_2]
+            vanishing_point_1, vanishing_point_2 = rectify_image(
+                image_name, index, 4, algorithm='independent', reestimate=True)
+            if len(vanishing_point_1) < 0 or len(vanishing_point_2) < 0:
+                skip_count = + 1
+            df.loc[len(df.index)] = [image_name, index,
+                                     vanishing_point_1, vanishing_point_2]
     print(df)
-    df.to_csv('./find_vanishing_points.csv')
+    any_informations_path = os.path.join(
+        configs['datasets_dir'], configs['any_informations_dir'])
+    os.makedirs(any_informations_path, exist_ok=True)
+
+    datasets_infor_path = os.path.join(
+        any_informations_path, configs['find_vanishingpoints_csv'])
+    df.to_csv(datasets_infor_path)
     print('index : {}, skip_count : {}'.format(index, skip_count))
+
 
 if __name__ == '__main__':
     main()

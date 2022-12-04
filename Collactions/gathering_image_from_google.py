@@ -1,8 +1,9 @@
 # -*- coding: utf-8 -*-
-import os
-import concurrent.futures
 from GoogleImageScraper import GoogleImageScraper
-from patch import webdriver_executable
+import concurrent.futures
+import os
+import sys
+sys.path.append('./')
 
 
 def worker_thread(search_key):
@@ -16,19 +17,31 @@ def worker_thread(search_key):
 
 
 if __name__ == "__main__":
+    import json
+    configs_path = 'commons/configs.json'
+    configs = json.load(open(configs_path))
     # Define file path
-    webdriver_path = os.path.normpath(os.path.join(
-        os.getcwd(), 'webdriver', webdriver_executable()))
-    image_path = os.path.normpath(os.path.join(os.getcwd(), 'photos'))
+    webdriver_dir = configs['webdriver_dir']
 
-    # Add new search key into array ["cat","t-shirt","apple","orange","pear","fish"]
-    # search_list = ["cat", "t-shirt"]
-    search_list = ["building scenery", '빌딩들', 'buildings', '건물숲']
+    from commons.patch import webdriver_executable
+    webdriver_path = os.path.normpath(os.path.join(
+        os.getcwd(), webdriver_dir, webdriver_executable()))
+
+    datasets_dir = configs['datasets_dir']
+    gathering_images_dir = configs['gathering_images_dir']
+    image_path = os.path.normpath(os.path.join(
+        os.getcwd(), datasets_dir, gathering_images_dir))
+    import os
+    os.makedirs(image_path, exist_ok=True)
+
+    search_list = configs["search_keywords"]
     search_keys = list(set(search_list))
 
     # Parameters
-    number_of_images = 50                # Desired number of images
+    # Desired number of images
+    number_of_images = configs["number_of_images"]
     headless = False                     # True = No Chrome GUI
+    # headless = True                     # True = No Chrome GUI
     min_resolution = (0, 0)             # Minimum desired image resolution
     max_resolution = (9999, 9999)       # Maximum desired image resolution
     max_missed = 1000                   # Max number of failed images before exit
