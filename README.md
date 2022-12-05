@@ -23,11 +23,15 @@ python images_preprocessor.py       #
 ```
 python find_vanishing_points.py     # to datasets/find_vanishingpoints and vanishingpoints_infor.csv
 ```
-### ?
+### ModelBuildings
+#### Datasets split
+- handworking Images : training, validation directories - 8:2
+#### Model Training
+- Fine Tuning Model : ResNet50, InceptionResNetV2
 ```
 python find_vanishingpoints_deeplearning.py
 
 ```
 
-####
+#### ModelDeployments
 
