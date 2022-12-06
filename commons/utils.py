@@ -1,3 +1,5 @@
+from random import randint, choice
+import pathlib
 import cv2
 import numpy as np
 import os
@@ -7,6 +9,23 @@ configs_path = 'commons/configs.json'
 configs = json.load(open(configs_path))
 
 columns_list = ['file_abspath', 'file_name', 'height', 'width']
+
+
+def get_lables(data_dir):
+    # count with temporary labels
+    count_dir = pathlib.Path(data_dir)
+    image_count = len(list(count_dir.glob('*/*')))
+    print(data_dir, image_count)
+    train_labels = []
+
+    for _ in range(image_count):
+        x = choice([randint(9, 15), randint(21, 27), randint(1, 5)])
+        y = choice([randint(1, 5), randint(9, 15), randint(21, 27)])
+        train_labels.append([x, y])
+        # train_labels.append([y])
+
+    pass
+    return train_labels
 
 
 def drop_images_infromation(images_informations):

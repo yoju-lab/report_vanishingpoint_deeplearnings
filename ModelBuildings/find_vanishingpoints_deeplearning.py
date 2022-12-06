@@ -4,14 +4,15 @@ from tensorflow.keras.applications.inception_resnet_v2 import InceptionResNetV2
 from tensorflow.keras import datasets
 from tensorflow.keras.layers import Dense, Flatten, MaxPooling2D
 import tensorflow as tf
-from random import randint, choice
-import pathlib
 import os
 
 import matplotlib.pyplot as plt
+import json
+configs_path = 'commons/configs.json'
+configs = json.load(open(configs_path))
 
 
-def show_history(history, epochs):
+def show_history(history, epochs, history_file_name, save_file=True):
     acc = history.history['accuracy']
     val_acc = history.history['val_accuracy']
 
@@ -21,41 +22,46 @@ def show_history(history, epochs):
     epochs_range = range(epochs)
 
     plt.figure(figsize=(8, 8))
-    plt.subplot(1, 2, 1)
+    plt.subplot(2, 1, 1)
     plt.plot(epochs_range, acc, label='Training Accuracy')
     plt.plot(epochs_range, val_acc, label='Validation Accuracy')
     plt.legend(loc='lower right')
     plt.title('Training and Validation Accuracy')
 
-    plt.subplot(1, 2, 2)
+    plt.subplot(2, 1, 2)
     plt.plot(epochs_range, loss, label='Training Loss')
     plt.plot(epochs_range, val_loss, label='Validation Loss')
     plt.legend(loc='upper right')
     plt.title('Training and Validation Loss')
-    plt.show()
+    if (save_file):
+        import os
+        model_history_dir = os.path.join(
+            configs['datasets_dir'], configs['model_history_dir'])
+        os.makedirs(model_history_dir, exist_ok=True)
+
+        file_path = os.path.join(
+            model_history_dir, history_file_name.format(epochs))
+        plt.savefig(file_path)
+    else:
+        plt.show()
+    plt.close()
 
 
 if __name__ == "__main__":
-    import json
-    configs_path = 'commons/configs.json'
-    configs = json.load(open(configs_path))
 
-    data_sets_path = os.path.abspath('datasets/')
-    data_dir = data_sets_path + '/features/'
+    data_dir = os.path.join(configs['datasets_dir'], configs['features_dir'])
+    import sys
+    sys.path.append('./')
+    from commons.utils import get_lables
 
-    # count with temporary labels
-    count_dir = pathlib.Path(data_dir)
-    image_count = len(list(count_dir.glob('*/*')))
-    print(data_dir, image_count)
-    train_labels = []
+    train_labels_list = get_lables(data_dir)
 
-    for _ in range(image_count):
-        x = choice([randint(9, 15), randint(21, 27), randint(1, 5)])
-        y = choice([randint(1, 5), randint(9, 15), randint(21, 27)])
-        train_labels.append([x, y])
-        # train_labels.append([y])
-
-    pass
+    # Normalization using standard scaler
+    from sklearn.preprocessing import StandardScaler
+    label_standardscaler = StandardScaler()
+    label_standardscaler.fit(train_labels_list)
+    # label_standardscaler.scale_, label_standardscaler.min_
+    train_labels = label_standardscaler.transform(train_labels_list).tolist()
 
     train_dir = os.path.join(data_dir, 'training')
 
@@ -64,6 +70,7 @@ if __name__ == "__main__":
     img_width = 200
     IMG_SHAPE = (img_height, img_width, 1)
 
+    # training dataset from directory
     train_ds = tf.keras.preprocessing.image_dataset_from_directory(
         data_dir,
         labels=train_labels,
@@ -75,6 +82,7 @@ if __name__ == "__main__":
         image_size=(img_height, img_width),
         batch_size=BATCH_SIZE)
 
+    # validation dataset from directory
     validation_ds = tf.keras.preprocessing.image_dataset_from_directory(
         data_dir,
         labels=train_labels,
@@ -132,7 +140,8 @@ if __name__ == "__main__":
     model_finetuning.summary()
 
     # 모델 fitting
-    epochs_list = [20, 50]
+    epochs_list = [20, 40, 60]
+    # epochs_list = [5, 10]
 
     # model weights 저장
     model_saves_dir = os.path.join(
@@ -140,16 +149,17 @@ if __name__ == "__main__":
     os.makedirs(model_saves_dir, exist_ok=True)
 
     for epochs in epochs_list:
-        history = model_finetuning.fit(train_ds, epochs=10,
+        history = model_finetuning.fit(train_ds, epochs=epochs,
                                        shuffle=True, validation_data=validation_ds)
-
-        show_history(history, 10)
+        history_file_name = 'tf_model_resnet50_{}.png'
+        show_history(history, epochs, history_file_name, save_file=True)
         count = 0
         for images, labels in train_ds.take(1):
             count += 1
             print(count, ', ', labels)
             predictions = model_finetuning.predict(images)
-            print('predictions : {}'.format(predictions))
+            print('predictions : {}'.format(
+                label_standardscaler.inverse_transform(predictions)))
 
         # show_history(history, epochs)
         model_saves_path = os.path.join(model_saves_dir, tf_model_name)

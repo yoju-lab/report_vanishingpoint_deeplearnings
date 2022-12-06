@@ -28,10 +28,14 @@ python find_vanishing_points.py     # to datasets/find_vanishingpoints and vanis
 - handworking Images : training, validation directories - 8:2
 #### Model Training
 - Fine Tuning Model : ResNet50, InceptionResNetV2
+- save model with trained
 ```
 python find_vanishingpoints_deeplearning.py
-
 ```
-
 #### ModelDeployments
+- load model with trained
+- predictions with images
+```
+python find_vanishingpoints_deeplearning.py
+```
 

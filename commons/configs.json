@@ -13,5 +13,6 @@
   "find_vanishingpoints_dir":"find_vanishingpoints",
   "features_dir":"features",
   "features_all_dir":"features_all",
-  "model_saves_dir":"model_saves"
+  "model_saves_dir":"model_saves",
+  "model_history_dir":"model_history"
 }
