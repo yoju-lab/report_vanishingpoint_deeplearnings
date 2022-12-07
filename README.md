@@ -29,13 +29,15 @@ python find_vanishing_points.py     # to datasets/find_vanishingpoints and vanis
 #### Model Training
 - Fine Tuning Model : ResNet50, InceptionResNetV2
 - save model with trained
+- export history files
 ```
-python find_vanishingpoints_deeplearning.py
+python finetuning_InceptionResNetV2.py      # export h5 model and history files
+python finetuning_ResNet50.py               # export h5 model and history files
 ```
 #### ModelDeployments
 - load model with trained
 - predictions with images
 ```
-python find_vanishingpoints_deeplearning.py
+python model_deplpyments.py
 ```
 
