@@ -1,3 +1,4 @@
+import re
 from random import randint, choice
 import pathlib
 import cv2
@@ -11,7 +12,23 @@ configs = json.load(open(configs_path))
 columns_list = ['file_abspath', 'file_name', 'height', 'width']
 
 
+def re_split(value):
+    result_list = re.split('[^\d\.-]+', value)
+    return [result_list[1], result_list[2]]
+
+
 def get_lables(data_dir):
+    # read from csv
+    find_vanishingpoints_path = os.path.join(configs['datasets_dir'], configs['any_informations_dir'],
+                                             configs['find_vanishingpoints_csv'])
+    df = pd.read_csv(find_vanishingpoints_path)
+    df_split = df['vanishing_point_1']
+    train_labels = list(map(re_split, df_split))
+
+    return train_labels
+
+
+def get_lables_temporaray(data_dir):
     # count with temporary labels
     count_dir = pathlib.Path(data_dir)
     image_count = len(list(count_dir.glob('*/*')))

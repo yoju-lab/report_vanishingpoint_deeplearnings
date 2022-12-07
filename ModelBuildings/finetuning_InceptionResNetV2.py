@@ -100,20 +100,14 @@ if __name__ == "__main__":
     #     print(count, ', ', labels)
     # pass
 
-    # 데이터 불러오기
-    # (train_images, train_labels), (test_images, test_labels) = datasets.cifar10.load_data()
-
-    # ResNet50 가져오기
-    model_finetuning = ResNet50(
+    # loading model
+    model_finetuning = InceptionResNetV2(
         include_top=False, pooling='avg', weights='imagenet')
 
-    # model_finetuning = InceptionResNetV2(
-    #     include_top=False, pooling='avg', weights='imagenet')
-
-    tf_model_name = 'tf_model_resnet50_{}.h5'
+    tf_model_name = 'tf_model_InceptionResNetV2_{}.h5'
     # tf_model_name = 'tf_model_InceptionResNetV2_{}.h5'
 
-    # resnet50 가중치 프리징
+    # InceptionResNetV2 가중치 프리징
     model_finetuning.trainable = False
 
     # inputs = tf.keras.Input(shape=IMG_SHAPE)
@@ -121,8 +115,7 @@ if __name__ == "__main__":
     inputs = tf.keras.Input(shape=(img_height, img_width, 1), name="input_01")
     x = tf.keras.layers.Concatenate(name="input_02")([inputs, inputs, inputs])
     x = tf.cast(x, tf.float32)
-    x = tf.keras.applications.resnet50.preprocess_input(x)
-    # x = tf.keras.applications.InceptionResNetV2.preprocess_input(x)
+    x = tf.keras.applications.inception_resnet_v2.preprocess_input(x)
 
     x = model_finetuning(x, training=False)
     # add regressions layers
@@ -151,7 +144,7 @@ if __name__ == "__main__":
     for epochs in epochs_list:
         history = model_finetuning.fit(train_ds, epochs=epochs,
                                        shuffle=True, validation_data=validation_ds)
-        history_file_name = 'tf_model_resnet50_{}.png'
+        history_file_name = 'tf_model_InceptionResNetV2_{}.png'
         show_history(history, epochs, history_file_name, save_file=True)
         count = 0
         for images, labels in train_ds.take(1):
