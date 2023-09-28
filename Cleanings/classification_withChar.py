@@ -52,6 +52,10 @@ def classify_images(base_dir):
         else:
             category = 'no_text'
 
+        puttext = str(len(extracted_text))+','+extracted_text
+        cv2.putText(image, puttext, (10, 30), cv2.FONT_HERSHEY_SIMPLEX,
+                    1.0, (0, 255, 0), 3)
+
         # 이미지 파일 이동
         move_images_with_classify_text(output_dirs, category, image_path)
 
