@@ -1,3 +1,7 @@
+# brew install tesseract-lang # on macOS
+# pip install pytesseract
+# brew install tesseract-lang
+
 import os
 import cv2
 from pytesseract import image_to_string
@@ -22,6 +26,12 @@ def move_images_with_classify_text(output_dirs, category, image_path):
 
 
 def classify_images(base_dir):
+    image_paths = []
+    for root, dirs, files in os.walk(base_dir):
+        for file in files:
+            if file.endswith(('.png', '.jpg', '.jpeg')):
+                image_paths.append(os.path.join(root, file))
+
     categories = ['text', 'no_text']
     output_dirs = {category: os.path.join(
         base_dir, category) for category in categories}
@@ -29,12 +39,6 @@ def classify_images(base_dir):
     for category in categories:
         if not os.path.exists(output_dirs[category]):
             os.makedirs(output_dirs[category])
-
-    image_paths = []
-    for root, dirs, files in os.walk(base_dir):
-        for file in files:
-            if file.endswith(('.png', '.jpg', '.jpeg')):
-                image_paths.append(os.path.join(root, file))
 
     for image_path in image_paths:
         image = cv2.imread(image_path)
@@ -53,6 +57,7 @@ def classify_images(base_dir):
             category = 'no_text'
 
         puttext = str(len(extracted_text))+','+extracted_text
+
         cv2.putText(image, puttext, (10, 30), cv2.FONT_HERSHEY_SIMPLEX,
                     1.0, (0, 255, 0), 3)
 

@@ -23,58 +23,11 @@ refer : https://youtu.be/Lu93Ah2h9XA?si=mANCGbCFFK3JvcNO
 """
 
 from bing_image_downloader import downloader
-import shutil
-import os
-import matplotlib
-import matplotlib.pyplot as plt
-import matplotlib.font_manager as fm
 
-# 한글 폰트 설정하기
-
-# 필요한 라이브러리 설치하기
-# !pip install bing-image-downloader
-
-"""#### <b>1. 이미지 크롤링을 활용한 학습 이미지 수집</b>
-
-* 수집한 이미지를 저장하기 위한 폴더를 생성하고, 필요한 함수를 정의합니다.
-"""
-
-
-directory_list = [
-    'datasets/train/',
-    'datasets/test/',
-]
-
-# 초기 디렉토리 만들기
-for directory in directory_list:
-    if not os.path.isdir(directory):
-        os.makedirs(directory)
-
-# 수집한 이미지를 학습 데이터와 평가 데이터로 구분하는 함수
-
-
-def dataset_split(query, train_cnt):
-    # 학습 및 평가 데이터셋 디렉토리 만들기
-    for directory in directory_list:
-        if not os.path.isdir(directory + '/' + query):
-            os.makedirs(directory + '/' + query)
-    # 학습 및 평가 데이터셋 준비하기
-    cnt = 0
-    for file_name in os.listdir(query):
-        if cnt < train_cnt:
-            print(f'[Train Dataset] {file_name}')
-            shutil.move(query + '/' + file_name,
-                        directory_list[0] + query + '/' + file_name)
-        else:
-            print(f'[Test Dataset] {file_name}')
-            shutil.move(query + '/' + file_name,
-                        directory_list[1] + query + '/' + file_name)
-        cnt += 1
-    shutil.rmtree(query)
-
-
-queries = ['건물', 'building']
+# for
+queries = ['건물']
+queries = ['건물들', 'buildings']
+output_dir = './datasets/collactions/fromBings'
 for query in queries:
     downloader.download(query, limit=40,  output_dir='./',
                         adult_filter_off=True, force_replace=False, timeout=60)
-    dataset_split(query, 30)
