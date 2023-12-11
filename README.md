@@ -1,10 +1,17 @@
+```
+pip install -r requirements.txt
+```
 ### Collactions
-#### images google scrapping
+#### scrapping images from google  (needs to check it)
 - gathering image files in photos folder
 - refer : [Github - Google Image Scraper] (https://github.com/ohyicong/Google-Image-Scraper/)
 ```
-pip install -r requirements.txt
-python gathering_image_from_google.py   # to datasets/gathering_images/search_keywords directories
+~$ python gathering_image_from_google.py   # to datasets/gathering_images/search_keywords directories
+```
+#### from bing
+- refer : [colab](https://colab.research.google.com/drive/1iu9Jwp45n8p15aF29qmehykKP6HLtJgx)
+```
+~$ python Collactions/gathering_images_from _bing.py   # to datasets/collections/fromBings/
 ```
 
 ### Cleanings
