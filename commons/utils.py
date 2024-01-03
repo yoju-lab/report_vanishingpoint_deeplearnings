@@ -44,7 +44,7 @@ def get_lables_temporaray(data_dir):
     pass
     return train_labels
 
-
+# 특정 사이즈 보다 작으면 
 def drop_images_infromation(images_informations):
     # make pandas dataset
     images_df = pd.DataFrame(images_informations, columns=columns_list)
@@ -59,6 +59,19 @@ def drop_images_infromation(images_informations):
     images_df.to_csv(infor_csv_path)
     return images_df
 
+# 숨김 폴더를 제외
+def listdir_no_hidden(path):
+    return [f for f in os.listdir(path) if not f.startswith('.')]
+
+def load_image_paths_from_folder(folder):
+    image_paths = []
+    for subdir, dirs, files in os.walk(folder):
+        for file in files:
+            if file.endswith((".jpeg",".jpg",".png")): # 이미지 파일 확장자에 따라 조절
+                file_path = os.path.join(folder, subdir, file)
+                relative_path = os.path.relpath(file_path, folder)
+                image_paths.append(relative_path)
+    return image_paths
 
 def get_images_information(root_directory=r'photos/'):
     # folder path
@@ -69,11 +82,15 @@ def get_images_information(root_directory=r'photos/'):
     images_sizes = []
     read_count = 0
     import matplotlib.pyplot as plt
+
+    dir_path_list = listdir_no_hidden(dir_path)
     # Iterate directory
-    for path in os.listdir(dir_path):
+    for path in dir_path_list:
         # check if current path is a file
         current_path = os.path.join(dir_path, path)
-        for file in os.listdir(current_path):
+        current_path_list = listdir_no_hidden(current_path)
+
+        for file in current_path_list:
             file_abspath = os.path.abspath(os.path.join(current_path, file))
             read_count += 1
             if os.path.isfile(file_abspath):
@@ -84,7 +101,7 @@ def get_images_information(root_directory=r'photos/'):
                     [file_abspath, file, shape[0], shape[1]])
     # print(read_count)
     images_df = drop_images_infromation(images_informations)
-    return (images_sizes, images_df)
+    return images_df
 
 
 def get_min_size(images_sizes):
@@ -151,13 +168,13 @@ def read_any_image(file_abspath):
         print(e)
         return None
 
-
+# 경로로 image 파일 읽어 min_height, min_width 기준 사이즈 조정과 gray로 변환
 def resize_image(row, min_height, min_width):
     # read the image
-    image = read_any_image(row['file_abspath'])
+    image = read_any_image(row)
     # read image as None
     if isinstance(image, type(None)):
-        print('image none {}'.format(row['file_abspath']))
+        print('image none {}'.format(row))
     pass
 
     resizing_image = resized_image(image, min_height, min_width)
@@ -169,34 +186,40 @@ def resize_image(row, min_height, min_width):
     pass
     return image_gray
 
+from datetime import datetime
 
 def write_any_image(preprocess_images_path, file_name, image_gray):
     try:
-        file_name = configs['preprocess_images_prefix'] + \
-            file_name.split('.')[0] + '.png'
+        # 파일 이름 추출
+        filename = os.path.basename(file_name)
+        # 현재 시간을 시분초 형태로 가져오기
+        now = datetime.now()
+        prefix_file_name = '{}_{}_{}.png'.format(configs['preprocess_images_prefix']
+                                           ,filename.split('.')[0]
+                                           ,now.strftime('%H%M%S%f')[:12])
 
-        save_path = os.path.join(preprocess_images_path, file_name)
+        save_path = os.path.join(preprocess_images_path, prefix_file_name)
         cv2.imwrite(save_path, image_gray)
     except Exception as e:
         print(e)
         return None
 
-
-def resize_images(images_df, min_height, min_width):
+# 수집된 이미지를 min_height, min_width 기준으로 사이즈 조정
+def resize_images(images_list, min_height, min_width):
     # short test
     # searchs = ['buildings12.jpeg', 'buildings45.jpeg']
     # conditions = (images_df['file_name'] == searchs[0]) | (images_df['file_name'] == searchs[1])
     # images_df = images_df[conditions]
 
-    images_df = images_df.reset_index()  # make sure indexes pair with number of rows
+    # images_df = images_df.reset_index()  # make sure indexes pair with number of rows
 
     save_path = os.path.join(
         configs['datasets_dir'], configs['preprocess_images_dir'])
 
     os.makedirs(save_path, exist_ok=True)
 
-    for index, row in images_df.iterrows():
+    for index, row in enumerate(images_list):
         image_gray = resize_image(row, min_height, min_width)
-        write_any_image(save_path, row['file_name'], image_gray)
+        write_any_image(save_path, row, image_gray)
 
-    print('index : {}'.format(index+1))
+    print('Modify image count : {}'.format(index+1))

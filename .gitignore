@@ -1,8 +1,5 @@
 __pycache__/
 .ipynb_checkpoints/
 webdriver/
-**/.DS_Store
 datasets/
-README.md
-datasets/
-.DS_Store
+.DS_Store/

@@ -1,6 +1,7 @@
 import json
 import os
 
+
 if __name__ == "__main__":
     import sys
     sys.path.append('./')
@@ -11,9 +12,10 @@ if __name__ == "__main__":
 
     collections_images_path = os.path.join(
         configs['datasets_dir'], configs['gathering_images_dir'])
-    images_sizes, images_df = utils.get_images_information(
-        collections_images_path)
+    # images_sizes, images_df = utils.get_images_information(
+    #     collections_images_path)
     # print(images_df)
+    images_list = utils.load_image_paths_from_folder(collections_images_path)
     pass
 
     # get height, width from images
@@ -21,5 +23,5 @@ if __name__ == "__main__":
     min_height, min_width = tuple(configs['resize_image_height_width'])
     pass
     # resize images
-    utils.resize_images(images_df, min_height, min_width)
+    utils.resize_images(images_list, min_height, min_width)
     pass

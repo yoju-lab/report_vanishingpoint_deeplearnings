@@ -19,9 +19,9 @@ pip install -r requirements.txt
 - Delete Images with NOT match search_keywords
 - handworking Images
 #### resize, rotation, crop images 
-- resize 200 * 200 pixels 
+- resize 200 * 200 pixels and covert gray scale
 ```
-python images_preprocessor.py       # 
+python images_preprocessor.py       # from datasets/collections to datasets/preprocessings
 ```
 
 ### EDAs

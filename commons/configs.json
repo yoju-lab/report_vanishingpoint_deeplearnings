@@ -1,11 +1,11 @@
 {
   "webdriver_dir": "webdriver",
   "datasets_dir": "datasets",
-  "gathering_images_dir": "gathering_images",
+  "gathering_images_dir": "collections",
   "search_keywords": ["towns", "빌딩숲", "buildings", "건물들"],
   "number_of_images": 50,
   "resize_image_height_width":[200,200],
-  "preprocess_images_dir": "preprocess_images",
+  "preprocess_images_dir": "preprocessings",
   "preprocess_images_prefix": "resize_gray_",
   "any_informations_dir": "any_informations",
   "preprocess_images_csv":"preprocess_images.csv",
