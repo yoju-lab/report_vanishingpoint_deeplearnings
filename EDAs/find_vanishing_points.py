@@ -445,55 +445,61 @@ def rectify_image(image, index, clip_factor=6, algorithm='independent',
 
     return vp1, vp2
 
-
-def read_files_abspath(dir='results/', subdir='test_files/'):
-    current_path = os.path.join(os.getcwd(), dir, subdir)
-    read_count = 0
-    files_abspath = []
+# target file list with path
+def read_file_relpath_list(dir='results/', subdir='test_files/'):
+    current_path = os.path.join(dir, subdir)
+    file_relpath_list = []
     for file in os.listdir(current_path):
-        file_abspath = os.path.abspath(os.path.join(current_path, file))
+        file_relpath = os.path.relpath(os.path.join(current_path, file))
 
-        if os.path.isfile(file_abspath):
-            read_count += 1
-            files_abspath.append(file_abspath)
+        if os.path.isfile(file_relpath) and not file_relpath.endswith('.DS_Store'):
+            file_relpath_list.append(file_relpath)
 
-    print('read_count : {}'.format(read_count))
-    return files_abspath
+    print('read_count : {}'.format(len(file_relpath_list)))
+    return file_relpath_list
 
+from datetime import datetime
 
 def main():
-    # image_name = sys.argv[-1]
-    # files_abspath = read_files_abspath('.', 'error_files')
-
-    files_abspath = read_files_abspath(
+    file_relpath_list = read_file_relpath_list(
         configs['datasets_dir'], configs['preprocess_images_dir'])
     import pandas as pd
     df = pd.DataFrame(
-        columns=['origin_file_name', 'indexs', 'vanishing_point_1', 'vanishing_point_2'])
+        columns=['origin_file_name', 'vanishing_point_prefix_filename'
+                 , 'vanishing_point_1_x', 'vanishing_point_1_y'
+                 , 'vanishing_point_2_x', 'vanishing_point_2_y'])
 
+    # Create the folder for the find vanishing points
     find_vanishingpoints_dir = os.path.join(
         configs['datasets_dir'], configs['find_vanishingpoints_dir'])
     os.makedirs(find_vanishingpoints_dir, exist_ok=True)
 
     skip_count = 0
-    for index, file_abspath in enumerate(files_abspath):
-        if not file_abspath.endswith('.DS_Store'):
-            image_name = file_abspath
+    for index, file_relpath in enumerate(file_relpath_list):
+        if not file_relpath.endswith('.DS_Store'):
+            image_name = file_relpath
             print("Rectifying {}".format(image_name))
+            now = datetime.now()
+            prefix_filename = "{}_{}".format(index,now.strftime('%H%M%S'))
             vanishing_point_1, vanishing_point_2 = rectify_image(
-                image_name, index, 4, algorithm='independent', reestimate=True)
-            if len(vanishing_point_1) < 0 or len(vanishing_point_2) < 0:
+                image_name, prefix_filename, 4, algorithm='independent', reestimate=True)
+            if len(vanishing_point_1) <= 2 or len(vanishing_point_2) <= 2:
                 skip_count = + 1
-            df.loc[len(df.index)] = [image_name, index,
-                                     vanishing_point_1, vanishing_point_2]
-    print(df)
+            else :
+                df.loc[len(df.index)] = [image_name, prefix_filename
+                                         , vanishing_point_1[0], vanishing_point_1[1]
+                                         , vanishing_point_2[0], vanishing_point_2[1]]
+    # print(df)
+    # create csv with find vanishing points information
     any_informations_path = os.path.join(
         configs['datasets_dir'], configs['any_informations_dir'])
     os.makedirs(any_informations_path, exist_ok=True)
 
+    csv_file_name = '{}_{}'.format(now.strftime('%m%d%H%M'), configs['find_vanishingpoints_csv'])
     datasets_infor_path = os.path.join(
-        any_informations_path, configs['find_vanishingpoints_csv'])
+        any_informations_path, csv_file_name)
     df.to_csv(datasets_infor_path)
+
     print('index : {}, skip_count : {}'.format(index, skip_count))
 
 
