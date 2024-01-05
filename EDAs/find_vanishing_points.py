@@ -460,12 +460,26 @@ def read_file_relpath_list(dir='results/', subdir='test_files/'):
 
 from datetime import datetime
 
+def split_path(path_filename):
+    # 경로에서 이미지 파일 정보 분리
+    path_parts = path_filename.split("/")
+
+    # 경로
+    path = path_parts[0:-1]
+
+    # 이미지 파일 정보
+    image_file_name = path_parts[-1]
+
+    # print("경로:", path)
+    # print("이미지 파일 이름:", image_file_name)   
+    return (path, image_file_name)
+
 def main():
     file_relpath_list = read_file_relpath_list(
         configs['datasets_dir'], configs['preprocess_images_dir'])
     import pandas as pd
     df = pd.DataFrame(
-        columns=['origin_file_name', 'vanishing_point_prefix_filename'
+        columns=['paths', 'file_name', 'vanishing_point_prefix_filename'
                  , 'vanishing_point_1_x', 'vanishing_point_1_y'
                  , 'vanishing_point_2_x', 'vanishing_point_2_y'])
 
@@ -477,16 +491,16 @@ def main():
     skip_count = 0
     for index, file_relpath in enumerate(file_relpath_list):
         if not file_relpath.endswith('.DS_Store'):
-            image_name = file_relpath
-            print("Rectifying {}".format(image_name))
+            # print("Rectifying {}".format(file_relpath))
             now = datetime.now()
             prefix_filename = "{}_{}".format(index,now.strftime('%H%M%S'))
             vanishing_point_1, vanishing_point_2 = rectify_image(
-                image_name, prefix_filename, 4, algorithm='independent', reestimate=True)
+                file_relpath, prefix_filename, 4, algorithm='independent', reestimate=True)
             if len(vanishing_point_1) <= 2 or len(vanishing_point_2) <= 2:
                 skip_count = + 1
             else :
-                df.loc[len(df.index)] = [image_name, prefix_filename
+                path, image_name = split_path(file_relpath)
+                df.loc[len(df.index)] = [path, image_name, prefix_filename
                                          , vanishing_point_1[0], vanishing_point_1[1]
                                          , vanishing_point_2[0], vanishing_point_2[1]]
     # print(df)
