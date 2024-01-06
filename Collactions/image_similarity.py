@@ -28,14 +28,16 @@ def find_and_delete_similar_images(directory, similarity_threshold=10):
             # Append data to the DataFrame
             similar_images_df = similar_images_df.append({'Image1': image1_path, 'Image2': image2_path, 'Similarity': similarity}, ignore_index=True)
 
-    csv_path = os.path.join('datasets/any_informations/image_similarity.csv')
-    similar_images_df.to_csv(csv_path, index=False)
+    csv_path = os.path.join('datasets/any_informations/target_images_withoutsimilar.csv')
+    # Filter images with similarity above the threshold
+    target_images_withoutsimilar_df = similar_images_df[similar_images_df['Similarity'] > similarity_threshold]
+    target_images_withoutsimilar_df.to_csv(csv_path, index=False)
 
     # Filter images with similarity above the threshold
     delete_images_df = similar_images_df[similar_images_df['Similarity'] <= similarity_threshold]
 
     # Create image_similarity.csv to store similarity degree
-    csv_path = os.path.join('datasets/any_informations/delete_images_df.csv')
+    csv_path = os.path.join('datasets/any_informations/delete_images.csv')
     delete_images_df.to_csv(csv_path, index=False)
 
     # Delete all but one of those with a similarity of 0.9 or higher

@@ -14,6 +14,11 @@ pip install -r requirements.txt
 ~$ python Collactions/gathering_images_from _bing.py   # to datasets/collections/fromBings/
 ```
 
+#### delete image_similarity
+```
+~$ python image_similarity.py   # to datasets/any_informations/delete_images.csv, target_images_withoutsimilar.csv
+```
+
 ### Cleanings
 #### Remove Outier Images  
 - Delete Images with NOT match search_keywords
