@@ -20,7 +20,7 @@ pip install -r requirements.txt
 ```
 
 ### Cleanings
-#### Remove Outier Images  
+#### Remove Outlier Images  
 - Delete Images with NOT match search_keywords
 - handworking Images
 #### resize, rotation, crop images 
