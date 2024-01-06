@@ -10,9 +10,9 @@ def calculate_image_similarity(image_path1, image_path2):
     return hash1 - hash2
 
 # Function to find similar images and delete duplicates
-def find_and_delete_similar_images(directory, similarity_threshold=0.9):
+def find_and_delete_similar_images(directory, similarity_threshold=10):
     # Create a DataFrame to store image paths and similarity degrees
-    df = pd.DataFrame(columns=['Image1', 'Image2', 'Similarity'])
+    similar_images_df = pd.DataFrame(columns=['Image1', 'Image2', 'Similarity'])
 
     # Get a list of image files in the specified directory
     image_files = [f for f in os.listdir(directory) if f.lower().endswith(('.png', '.jpg', '.jpeg', '.gif', '.bmp'))]
@@ -26,23 +26,27 @@ def find_and_delete_similar_images(directory, similarity_threshold=0.9):
             similarity = calculate_image_similarity(image1_path, image2_path)
 
             # Append data to the DataFrame
-            df = df.append({'Image1': image1_path, 'Image2': image2_path, 'Similarity': similarity}, ignore_index=True)
+            similar_images_df = similar_images_df.append({'Image1': image1_path, 'Image2': image2_path, 'Similarity': similarity}, ignore_index=True)
+
+    csv_path = os.path.join('datasets/any_informations/image_similarity.csv')
+    similar_images_df.to_csv(csv_path, index=False)
 
     # Filter images with similarity above the threshold
-    similar_images = df[df['Similarity'] >= similarity_threshold]
+    delete_images_df = similar_images_df[similar_images_df['Similarity'] <= similarity_threshold]
 
     # Create image_similarity.csv to store similarity degree
-    csv_path = os.path.join('datasets/any_informations/image_similarity.csv')
-    similar_images.to_csv(csv_path, index=False)
+    csv_path = os.path.join('datasets/any_informations/delete_images_df.csv')
+    delete_images_df.to_csv(csv_path, index=False)
 
     # Delete all but one of those with a similarity of 0.9 or higher
     delete_file_list = []
-    for index, row in similar_images.iterrows():
+    for index, row in delete_images_df.iterrows():
         try:
             delete_file_list.append(row['Image2'])
             # os.remove(row['Image2'])
         except Exception as e:
             print(f"Error deleting {row['Image2']}: {e}")
+            
     print('len(image_files):{}, len(delete_file_list):{}'.format(len(image_files),
                                                                  len(delete_file_list)))
     
