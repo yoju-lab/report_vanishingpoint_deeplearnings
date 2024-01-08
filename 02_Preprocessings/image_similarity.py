@@ -44,8 +44,8 @@ def find_and_delete_similar_images(directory, similarity_threshold=10):
     delete_file_list = []
     for index, row in delete_images_df.iterrows():
         try:
+            os.remove(row['Image2'])
             delete_file_list.append(row['Image2'])
-            # os.remove(row['Image2'])
         except Exception as e:
             print(f"Error deleting {row['Image2']}: {e}")
             

@@ -14,19 +14,15 @@ pip install -r requirements.txt
 ~$ python Collactions/gathering_images_from _bing.py   # to datasets/collections/fromBings/
 ```
 
-#### delete image_similarity
-```
-~$ python image_similarity.py   # to datasets/any_informations/delete_images.csv, target_images_withoutsimilar.csv
-```
-
-### Cleanings
-#### Remove Outlier Images  
-- Delete Images with NOT match search_keywords
-- handworking Images
+### Preprocessings
 #### resize, rotation, crop images 
 - resize 200 * 200 pixels and covert gray scale
 ```
 python images_preprocessor.py       # from datasets/collections to datasets/preprocessings
+```
+#### delete image_similarity
+```
+~$ python image_similarity.py   # to datasets/any_informations/delete_images.csv, target_images_withoutsimilar.csv
 ```
 
 ### EDAs
@@ -35,6 +31,10 @@ python images_preprocessor.py       # from datasets/collections to datasets/prep
 ```
 python find_vanishing_points.py     # to datasets/find_vanishingpoints and vanishingpoints_infor.csv
 ```
+#### Remove Outlier Images  
+- Delete Images with NOT match search_keywords
+- handworking Images
+
 ### ModelBuildings
 #### Datasets split
 - handworking Images : training, validation directories - 8:2
