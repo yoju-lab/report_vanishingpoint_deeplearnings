@@ -465,7 +465,7 @@ def split_path(path_filename):
     path_parts = path_filename.split("/")
 
     # 경로
-    path = path_parts[0:-1]
+    path = os.path.join(path_parts[0], path_parts[1],'')
 
     # 이미지 파일 정보
     image_file_name = path_parts[-1]
@@ -474,21 +474,24 @@ def split_path(path_filename):
     # print("이미지 파일 이름:", image_file_name)   
     return (path, image_file_name)
 
+def checkInnerVanishing_point(vanishing_point):
+    if (0 <= vanishing_point[0] <= 200) and (0 <= vanishing_point[1] <= 200):
+        return True
+    
+    return False
+
+import pandas as pd
 def main():
     file_relpath_list = read_file_relpath_list(
         configs['datasets_dir'], configs['preprocess_images_dir'])
-    import pandas as pd
-    df = pd.DataFrame(
-        columns=['paths', 'file_name', 'vanishing_point_prefix_filename'
-                 , 'vanishing_point_1_x', 'vanishing_point_1_y'
-                 , 'vanishing_point_2_x', 'vanishing_point_2_y'])
-
     # Create the folder for the find vanishing points
     find_vanishingpoints_dir = os.path.join(
         configs['datasets_dir'], configs['find_vanishingpoints_dir'])
     os.makedirs(find_vanishingpoints_dir, exist_ok=True)
 
-    skip_count = 0
+    skip_count_1 = 0
+    skip_count_2 = 0
+    vanishing_point_list = []
     for index, file_relpath in enumerate(file_relpath_list):
         if not file_relpath.endswith('.DS_Store'):
             # print("Rectifying {}".format(file_relpath))
@@ -496,13 +499,25 @@ def main():
             prefix_filename = "{}_{}".format(index,now.strftime('%H%M%S'))
             vanishing_point_1, vanishing_point_2 = rectify_image(
                 file_relpath, prefix_filename, 4, algorithm='independent', reestimate=True)
-            if len(vanishing_point_1) <= 2 or len(vanishing_point_2) <= 2:
-                skip_count = + 1
+            path, image_name = split_path(file_relpath)
+            # 수평 소실점 좌표 찾은 여부 따라 저장 
+            if len(vanishing_point_1) <= 2 and checkInnerVanishing_point(vanishing_point_1):
+                skip_count_1 = + 1
             else :
-                path, image_name = split_path(file_relpath)
-                df.loc[len(df.index)] = [path, image_name, prefix_filename
-                                         , vanishing_point_1[0], vanishing_point_1[1]
-                                         , vanishing_point_2[0], vanishing_point_2[1]]
+                datasets = [path, image_name, prefix_filename
+                            , 1, vanishing_point_1[0], vanishing_point_1[1]]
+                vanishing_point_list.append(datasets)
+            # 수직 소실점 좌표 찾은 여부 따라 저장 
+            if len(vanishing_point_2) <= 2 and checkInnerVanishing_point(vanishing_point_2):
+                skip_count_2 = + 1
+            else :
+                datasets = [path, image_name, prefix_filename
+                            , 2, vanishing_point_2[0], vanishing_point_2[1]]
+                vanishing_point_list.append(datasets)
+
+    df = pd.DataFrame(vanishing_point_list
+                      ,columns=['paths', 'file_name', 'vanishing_point_prefix_filename'
+                                , 'vanishing_point_index', 'vanishing_point_x', 'vanishing_point_y'])
     # print(df)
     # create csv with find vanishing points information
     any_informations_path = os.path.join(
@@ -514,7 +529,8 @@ def main():
         any_informations_path, csv_file_name)
     df.to_csv(datasets_infor_path)
 
-    print('index : {}, skip_count : {}'.format(index, skip_count))
+    print('index : {}, skip_count_1 : {}, skip_count_2 : {}'.format(index
+                                                                    , skip_count_1, skip_count_2))
 
 
 if __name__ == '__main__':
