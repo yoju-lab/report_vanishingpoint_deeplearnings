@@ -34,6 +34,9 @@ python find_vanishing_points.py     # to datasets/find_vanishingpoints and vanis
 #### Remove Outlier Images  
 - Delete Images with NOT match search_keywords
 - handworking Images
+```
+python filtering_use_grayimage.py     # to datasets/any_informations/filtering_grayimage_by_vanishing_point.csv
+```
 
 ### ModelBuildings
 #### Datasets split
