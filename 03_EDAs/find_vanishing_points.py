@@ -65,8 +65,12 @@ def compute_edgelets(image, sigma=3):
     directions = np.array(directions)
     strengths = np.array(strengths)
 
-    directions = np.array(directions) / \
-        np.linalg.norm(directions, axis=1)[:, np.newaxis]
+    try:
+        directions = np.array(directions) / \
+            np.linalg.norm(directions, axis=1)[:, np.newaxis]
+    except:
+        locations = np.zeros((1, 2))
+        directions = np.zeros((1, 2)) 
 
     return (locations, directions, strengths)
 
@@ -427,13 +431,16 @@ def rectify_image(image, index, clip_factor=6, algorithm='independent',
             edgelets2 = remove_inliers(vp1, edgelets1, 10)
 
         # Find second vanishing point
-        vp2 = ransac_vanishing_point(edgelets2, 2000, threshold_inlier=5)
-        if len(vp2) > 0:
-            if reestimate:
-                suffix = '{}_vp2'.format(index)
-                vp2 = reestimate_model(vp2, edgelets2, 5)
-                # Visualize the vanishing point model
-                vis_model(image, suffix, vp2)
+        try :
+            vp2 = ransac_vanishing_point(edgelets2, 2000, threshold_inlier=5)
+            if len(vp2) > 0:
+                if reestimate:
+                    suffix = '{}_vp2'.format(index)
+                    vp2 = reestimate_model(vp2, edgelets2, 5)
+                    # Visualize the vanishing point model
+                    vis_model(image, suffix, vp2)
+        except:
+            vp2 = vp1
 
     elif algorithm == '3-line':
         focal_length = None
@@ -499,21 +506,22 @@ def main():
             prefix_filename = "{}_{}".format(index,now.strftime('%H%M%S'))
             vanishing_point_1, vanishing_point_2 = rectify_image(
                 file_relpath, prefix_filename, 4, algorithm='independent', reestimate=True)
-            path, image_name = split_path(file_relpath)
-            # 수평 소실점 좌표 찾은 여부 따라 저장 
-            if len(vanishing_point_1) <= 2 and checkInnerVanishing_point(vanishing_point_1):
-                skip_count_1 = + 1
-            else :
-                datasets = [path, image_name, prefix_filename
-                            , 1, vanishing_point_1[0], vanishing_point_1[1]]
-                vanishing_point_list.append(datasets)
-            # 수직 소실점 좌표 찾은 여부 따라 저장 
-            if len(vanishing_point_2) <= 2 and checkInnerVanishing_point(vanishing_point_2):
-                skip_count_2 = + 1
-            else :
-                datasets = [path, image_name, prefix_filename
-                            , 2, vanishing_point_2[0], vanishing_point_2[1]]
-                vanishing_point_list.append(datasets)
+            if len(vanishing_point_1) > 2 and len(vanishing_point_2) > 2:
+                path, image_name = split_path(file_relpath)
+                # 수평 소실점 좌표 찾은 여부 따라 저장 
+                if len(vanishing_point_1) <= 2 and checkInnerVanishing_point(vanishing_point_1):
+                    skip_count_1 = + 1
+                else :
+                    datasets = [path, image_name, prefix_filename
+                                , 1, vanishing_point_1[0], vanishing_point_1[1]]
+                    vanishing_point_list.append(datasets)
+                # 수직 소실점 좌표 찾은 여부 따라 저장 
+                if len(vanishing_point_2) <= 2 and checkInnerVanishing_point(vanishing_point_2):
+                    skip_count_2 = + 1
+                else :
+                    datasets = [path, image_name, prefix_filename
+                                , 2, vanishing_point_2[0], vanishing_point_2[1]]
+                    vanishing_point_list.append(datasets)
 
     df = pd.DataFrame(vanishing_point_list
                       ,columns=['paths', 'file_name', 'vanishing_point_prefix_filename'

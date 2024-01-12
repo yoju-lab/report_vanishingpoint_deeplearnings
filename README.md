@@ -13,12 +13,11 @@ pip install -r requirements.txt
 ```
 ~$ python Collactions/gathering_images_from _bing.py   # to datasets/collections/fromBings/
 ```
-
 ### Preprocessings
 #### resize, rotation, crop images 
 - resize 200 * 200 pixels and covert gray scale
 ```
-python images_preprocessor.py       # from datasets/collections to datasets/preprocessings
+python preprocessor_images.py       # from datasets/collections to datasets/preprocessings
 ```
 #### delete image_similarity
 ```
