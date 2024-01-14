@@ -35,6 +35,8 @@ date_str = now.strftime("%Y%m%d%H%M%S")
 queries = ['건물']
 queries = ['건물들', 'buildings']
 queries = ["towns", "빌딩숲", "buildings", "건물들"]
+queries = ["다운 타운", "Downtown Denver Buildings", "일본 빌딩들", "중국 빌딩"]
+
 output_dir = './datasets/collections/fromBings/'+date_str
 for query in queries:
     downloader.download(query, limit=50,  output_dir=output_dir,
